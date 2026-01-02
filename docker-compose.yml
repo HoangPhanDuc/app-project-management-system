@@ -1,0 +1,28 @@
+services:
+  backend:
+    build:
+      context: ./server_web_orm
+    env_file:
+      - ./server_web_orm/.env
+    container_name: backend_server_web_orm
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./server_web_orm:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+
+  # frontend:
+  #   build:
+  #     context: ./app_client
+  #   container_name: frontend_app_client
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./app_client:/app
+  #     - /app/node_modules
+  #   environment:
+  #     - NODE_ENV=development
+  #   depends_on:
+  #     - backend
