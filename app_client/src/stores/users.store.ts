@@ -13,12 +13,20 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  setUser: (user: User) => void;
+  isLoading: boolean;
+  error: string | null;
+  setUser: (user: User | null) => void;
+  setIsLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
   clearUser: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  setUser: (user) => set({ user }),
-  clearUser: () => set({ user: null }),
+  isLoading: true,
+  error: null,
+  setUser: (user) => set({ user, isLoading: false, error: null }),
+  setIsLoading: (loading) => set({ isLoading: loading }),
+  setError: (error) => set({ error, isLoading: false }),
+  clearUser: () => set({ user: null, isLoading: false, error: null }),
 }));

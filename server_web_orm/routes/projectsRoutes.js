@@ -4,6 +4,7 @@ import {
   deleteAllProjectsController,
   deleteProjectsController,
   getAllProjectsController,
+  getOneProjectController,
   updateProjectsController,
 } from "../controller/projectsController.js";
 import { authenticate, authorize } from "../middleware/authentication.js";
@@ -22,7 +23,13 @@ projectsRoutes.get(
   authorize("admin"),
   getAllProjectsController
 );
-projectsRoutes.put(
+projectsRoutes.get(
+  "/get-project/:id",
+  authenticate,
+  authorize("admin"),
+  getOneProjectController
+);
+projectsRoutes.patch(
   "/update-project/:id",
   authenticate,
   authorize("admin"),

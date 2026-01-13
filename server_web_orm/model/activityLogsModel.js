@@ -13,14 +13,12 @@ const activityLogsModel = sequelize.define(
       allowNull: false,
       references: { model: usersModel, key: "id" },
       onUpdate: "CASCADE",
-      onDelete: "RESTRICT",
     },
     project_id: {
       type: DataTypes.BIGINT,
       allowNull: true,
       references: { model: projectsModel, key: "id" },
       onUpdate: "CASCADE",
-      onDelete: "RESTRICT",
     },
     task_id: {
       type: DataTypes.BIGINT,

@@ -1,12 +1,21 @@
-import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { ReactNode } from "react";
+import Header from "@/components/layout/Header";
+import AuthProvider from "@/components/provider/AuthProvider";
+import { getAuthUser } from "@/lib/auth";
 
-export default function MainLayout({ children }: { children: ReactNode }) {
+export default async function MainLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const user = await getAuthUser();
+
   return (
     <>
       <Header />
-      <main className="min-h-screen">{children}</main>
+      <main className="min-h-screen">
+        <AuthProvider initialUser={user}>{children}</AuthProvider>
+      </main>
       <Footer />
     </>
   );

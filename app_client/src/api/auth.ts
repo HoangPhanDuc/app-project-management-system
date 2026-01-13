@@ -44,7 +44,7 @@ export const verifyCodeApi = async (email: string, otp: string) => {
 
 export const getProfileApi = async () => {
   try {
-    const res = await apiFetch("/profile", {
+    const res = await apiFetch("/me", {
       method: "GET",
     });
     return res;
@@ -57,7 +57,6 @@ export const logOutApi = async () => {
   try {
     const res = await apiFetch("/log-out", {
       method: "GET",
-      credentials: "include",
     });
     return res;
   } catch (error: any) {

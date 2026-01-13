@@ -35,19 +35,14 @@ export default function SignupPage() {
   };
 
   const onSubmit = async (data: SignUpFormInputs) => {
-    try {
-      const res = await signUpApi(
-        data.name,
-        data.email,
-        data.password,
-        data.role
-      );
-      console.log(res);
-      if (res.status === true) {
-        router.replace(`/verify-code?email=${encodeURIComponent(data.email)}`);
-      }
-    } catch (error) {
-      console.log(error);
+    const res = await signUpApi(
+      data.name,
+      data.email,
+      data.password,
+      data.role
+    );
+    if (res.status === true) {
+      router.replace(`/verify-code?email=${encodeURIComponent(data.email)}`);
     }
   };
 
@@ -138,14 +133,17 @@ export default function SignupPage() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 font-semibold hover:bg-blue-700 transition-colors"
+          className="w-full bg-blue-600 text-white py-2 font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
         >
           Sign Up
         </button>
 
         <p className="text-center text-sm text-gray-500 mt-4">
           Already have an account?{" "}
-          <Link href="/sign-in" className="text-blue-600 hover:underline">
+          <Link
+            href="/sign-in"
+            className="text-blue-600 hover:underline cursor-pointer"
+          >
             Login
           </Link>
         </p>

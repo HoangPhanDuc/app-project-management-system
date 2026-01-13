@@ -58,7 +58,7 @@ export const userLoginController = async (req, res) => {
   }
 };
 
-export const getProfileController = async (req, res) => {
+export const getMeController = async (req, res) => {
   try {
     const user = await getUserByIdService(req.user.id);
     if (!user) {
@@ -70,7 +70,7 @@ export const getProfileController = async (req, res) => {
 
     return res.status(200).json({
       status: true,
-      message: "User profile retrieved successfully",
+      message: "User retrieved successfully",
       result: user,
     });
   } catch (error) {
@@ -121,11 +121,9 @@ export const userRegController = async (req, res) => {
       });
     }
 
-    // đã pending → resend / refresh OTP
     if (pendingUsers.has(email)) {
       const pendingUser = pendingUsers.get(email);
 
-      // cooldown 60s
       if (pendingUser.lastSent && Date.now() - pendingUser.lastSent < 60_000) {
         return res.status(429).json({
           status: false,
@@ -136,7 +134,6 @@ export const userRegController = async (req, res) => {
       let otpCode = pendingUser.otpCode;
       let otpExpires = pendingUser.otpExpires;
 
-      // OTP hết hạn → tạo mới + reset attempts
       if (new Date() > otpExpires) {
         otpCode = generateOTP();
         otpExpires = new Date(Date.now() + 15 * 60 * 1000);
@@ -158,7 +155,6 @@ export const userRegController = async (req, res) => {
       });
     }
 
-    // user mới hoàn toàn
     const hashedPassword = hashingPassword(password);
     const otpCode = generateOTP();
     const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
@@ -213,7 +209,6 @@ export const resendOtpController = async (req, res) => {
       });
     }
 
-    // cooldown 60s
     if (pendingUser.lastSent && Date.now() - pendingUser.lastSent < 60_000) {
       return res.status(429).json({
         status: false,
@@ -224,7 +219,6 @@ export const resendOtpController = async (req, res) => {
     let otpCode = pendingUser.otpCode;
     let otpExpires = pendingUser.otpExpires;
 
-    // OTP hết hạn → tạo mới + reset attempts
     if (new Date() > otpExpires) {
       otpCode = generateOTP();
       otpExpires = new Date(Date.now() + 15 * 60 * 1000);
@@ -265,7 +259,6 @@ export const verifyEmailController = async (req, res) => {
       });
     }
 
-    // check hết hạn trước
     if (new Date() > pendingUser.otpExpires) {
       pendingUsers.delete(email);
       return res.status(400).json({
@@ -274,7 +267,6 @@ export const verifyEmailController = async (req, res) => {
       });
     }
 
-    // check brute-force
     pendingUser.attempts += 1;
     if (pendingUser.attempts > 5) {
       pendingUsers.delete(email);
@@ -291,7 +283,6 @@ export const verifyEmailController = async (req, res) => {
       });
     }
 
-    // tránh race condition
     const existingUser = await validateUserService(email);
     if (existingUser) {
       pendingUsers.delete(email);
@@ -323,8 +314,39 @@ export const verifyEmailController = async (req, res) => {
   }
 };
 
-export const requestEmailVerificationController = async (req, res) => {
-  const { email } = req.body;
-  try {
-  } catch (error) {}
-};
+// export const requestEmailVerificationController = async (req, res) => {
+//   const { email } = req.body;
+//   try {
+//     const user = await findUserByEmail(email);
+//     if (!user) {
+//       return res.status(404).json({
+//         status: false,
+//         message: "User not found.",
+//       });
+//     }
+
+//     const otpCode = generateOTP();
+//     const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
+
+//     pendingUsers.set(email, {
+//       ...user,
+//       otpCode,
+//       otpExpires,
+//       attempts: 0,
+//       lastSent: Date.now(),
+//     });
+
+//     await sendVerificationEmail(email, otpCode);
+
+//     return res.status(200).json({
+//       status: true,
+//       message: "OTP sent. Please check your email to verify your account.",
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({
+//       status: false,
+//       message: "Internal server error.",
+//     });
+//   }
+// };

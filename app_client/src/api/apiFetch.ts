@@ -1,11 +1,11 @@
-const API_URL = "http://localhost:3001/api/v1";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 type FetchOptions = RequestInit & {
   params?: Record<string, string | number>;
 };
 
 export async function apiFetch(endpoint: string, options: FetchOptions = {}) {
-  let url = API_URL + endpoint;
+  let url = `${API_URL}${endpoint}`;
 
   if (options.params) {
     const qs = new URLSearchParams(

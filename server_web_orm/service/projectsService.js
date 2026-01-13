@@ -40,17 +40,8 @@ export const createProjectsService = async (data) => {
 export const updateProjectsService = async (id, data) => {
   try {
     const project = await projectsModel.findByPk(id);
-    if (!project) {
-      return null;
-    }
-    // update only the found instance to avoid accidental mass-updates
-    await project.update({
-      name: data.name ?? project.name,
-      description: data.description ?? project.description,
-      status: data.status ?? project.status,
-    });
-    // reload to get latest values and return
-    await project.reload();
+    if (!project) return null;
+    await project.update(data);
     return project;
   } catch (error) {
     throw error;

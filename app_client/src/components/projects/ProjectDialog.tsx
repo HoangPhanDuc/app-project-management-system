@@ -1,11 +1,9 @@
 "use client";
 
-import { createProjectApi } from "@/api/projectApi";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
 import { z } from "zod";
 
 const projectSchema = z.object({
@@ -14,15 +12,31 @@ const projectSchema = z.object({
   status: z.enum(["active", "completed", "archived"]),
 });
 
-type FormDataProject = z.infer<typeof projectSchema>;
+export type FormDataProject = z.infer<typeof projectSchema>;
+
+type Mode = "create" | "update";
+
+type Props = {
+  mode: Mode;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  initialData?: FormDataProject;
+  onSubmit: (data: FormDataProject) => Promise<void>;
+};
+
+const defaultValues: FormDataProject = {
+  name: "",
+  description: "",
+  status: "active",
+};
 
 export default function ProjectDialog({
-  onCreated,
-}: {
-  onCreated: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-
+  mode,
+  open,
+  onOpenChange,
+  initialData,
+  onSubmit,
+}: Props) {
   const {
     register,
     handleSubmit,
@@ -30,41 +44,35 @@ export default function ProjectDialog({
     formState: { errors, isSubmitting },
   } = useForm<FormDataProject>({
     resolver: zodResolver(projectSchema),
-    defaultValues: {
-      status: "active",
-    },
+    defaultValues,
   });
 
-  const onSubmit = async (data: FormDataProject) => {
-    try {
-      const res = await createProjectApi(data);
-      if (res.status === true) {
-        toast.success("Project created successfully!");
-        reset();
-        setOpen(false);
-        onCreated();
-      }
-    } catch (err) {
-      toast.error("Create project failed");
+  useEffect(() => {
+    if (open) {
+      reset(initialData ?? defaultValues);
     }
+  }, [open, initialData, reset]);
+
+  const submitHandler = async (data: FormDataProject) => {
+    await onSubmit(data);
   };
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger asChild>
-        <button className="px-4 py-2 bg-blue-600 text-white">
-          Create Project
-        </button>
-      </Dialog.Trigger>
-
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Overlay className="fixed inset-0 bg-black/50" />
 
       <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 w-full max-w-md">
-        <Dialog.Title className="text-xl font-bold mb-4">
-          Create Project
+        <Dialog.Title className="text-xl text-center font-bold mb-2">
+          {mode === "update" ? "Update Project" : "Create Project"}
         </Dialog.Title>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <Dialog.Description className="text-sm text-gray-500 mb-4">
+          {mode === "update"
+            ? "Update project information."
+            : "Create a new project."}
+        </Dialog.Description>
+
+        <form onSubmit={handleSubmit(submitHandler)} className="space-y-4">
           <div>
             <input
               {...register("name")}
@@ -72,7 +80,7 @@ export default function ProjectDialog({
               className="border p-2 w-full"
             />
             {errors.name && (
-              <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+              <p className="text-red-500 text-sm">{errors.name.message}</p>
             )}
           </div>
 
@@ -80,47 +88,44 @@ export default function ProjectDialog({
             <textarea
               {...register("description")}
               placeholder="Project Description"
-              className="border p-2 rounded w-full"
+              className="border p-2 w-full"
             />
             {errors.description && (
-              <p className="text-red-500 text-sm mt-1">
+              <p className="text-red-500 text-sm">
                 {errors.description.message}
               </p>
             )}
           </div>
 
           <div>
-            <select
-              {...register("status")}
-              className="border p-2 rounded w-full"
-            >
+            <select {...register("status")} className="border p-2 w-full">
               <option value="active">Active</option>
               <option value="completed">Completed</option>
               <option value="archived">Archived</option>
             </select>
-            {errors.status && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.status.message}
-              </p>
-            )}
           </div>
 
-          <div className="flex justify-end space-x-2">
-            <Dialog.Close asChild>
-              <button
-                type="button"
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-            </Dialog.Close>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="px-4 py-2 bg-gray-300"
+            >
+              Cancel
+            </button>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              className="px-4 py-2 bg-blue-600 text-white disabled:opacity-50"
             >
-              {isSubmitting ? "Creating..." : "Create"}
+              {isSubmitting
+                ? mode === "update"
+                  ? "Updating..."
+                  : "Creating..."
+                : mode === "update"
+                ? "Update"
+                : "Create"}
             </button>
           </div>
         </form>

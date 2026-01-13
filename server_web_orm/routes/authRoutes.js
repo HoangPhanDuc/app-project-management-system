@@ -1,19 +1,19 @@
 import express from "express";
 import {
-  getProfileController,
+  getMeController,
   resendOtpController,
   userLoginController,
   userLogoutController,
   userRegController,
   verifyEmailController,
 } from "../controller/authController.js";
+import { authenticate } from "../middleware/authentication.js";
+import { handleValidation } from "../middleware/handleValidation.js";
 import {
   validateLogin,
   validateRegister,
   validateVerifyEmail,
 } from "../validation/validateAuth.js";
-import { handleValidation } from "../middleware/handleValidation.js";
-import { authenticate } from "../middleware/authentication.js";
 
 const auth = express.Router();
 
@@ -27,6 +27,6 @@ auth.post(
   handleValidation,
   verifyEmailController
 );
-auth.get("/profile", authenticate, getProfileController);
+auth.get("/me", authenticate, getMeController);
 
 export default auth;

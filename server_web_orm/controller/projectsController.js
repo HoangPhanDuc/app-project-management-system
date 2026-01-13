@@ -66,16 +66,10 @@ export const createProjectsController = async (req, res) => {
 export const updateProjectsController = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, status } = req.body;
-    const result = await updateProjectsService(id, {
-      name,
-      description,
-      status,
-    });
+    const data = req.body;
+    const result = await updateProjectsService(id, data);
     if (!result) {
-      return res
-        .status(404)
-        .json({ status: false, mess: "Can not find and update project" });
+      return res.status(404).json({ status: false, mess: "Project not found" });
     }
     return res.status(200).json({
       status: true,

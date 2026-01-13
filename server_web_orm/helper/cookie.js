@@ -3,7 +3,7 @@ import { baseCookieOptions } from "./cookieOptions.js";
 export const setLoginCookies = (res, accessToken, refreshToken) => {
   res.cookie("accessToken", accessToken, {
     ...baseCookieOptions(),
-    maxAge: 1 * 60 * 1000,
+    maxAge: 15 * 60 * 1000,
   });
 
   res.cookie("refreshToken", refreshToken, {
@@ -15,6 +15,6 @@ export const setLoginCookies = (res, accessToken, refreshToken) => {
 export const setAuthCookie = (res, accessToken) => {
   res.cookie("accessToken", accessToken, {
     ...baseCookieOptions(),
-    maxAge: 1 * 60 * 1000,
+    maxAge: 15 * 60 * 1000,
   });
 };

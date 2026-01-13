@@ -1,4 +1,3 @@
-import AuthProvider from "@/components/provider/AuthProvider";
 import "@/styles/globals.css";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -29,10 +28,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          <main className="min-h-screen">{children}</main>
-        </AuthProvider>
-        <Toaster position="top-right" reverseOrder={false} />
+        <main>{children}</main>
+        <Toaster
+          position="top-right"
+          toastOptions={{ duration: 2000 }}
+          reverseOrder={false}
+        />
       </body>
     </html>
   );

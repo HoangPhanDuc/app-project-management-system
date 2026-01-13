@@ -3,6 +3,6 @@ export const baseCookieOptions = () => {
   return {
     httpOnly: true,
     secure: isProd,
-    sameSite: isProd ? "strict" : "lax",
+    sameSite: "lax",
   };
 };

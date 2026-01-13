@@ -84,15 +84,12 @@ export default function VerifyCodePage() {
   };
 
   const onSubmit = async (data: VerifyCodeFormInputs) => {
-    try {
-      const res = await verifyCodeApi(email, data.code);
-      if (res.status === true) {
-        router.replace("/sign-in");
-      } else {
-        toast.error(res.message || "Verification failed");
-      }
-    } catch (err: any) {
-      toast.error(err?.message || "Something went wrong");
+    const res = await verifyCodeApi(email, data.code);
+    if (res.status === true) {
+      toast.success("Email verified successfully!");
+      router.replace("/sign-in");
+    } else {
+      toast.error(res.message || "Verification failed");
     }
   };
 

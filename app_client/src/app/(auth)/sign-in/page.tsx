@@ -65,7 +65,7 @@ export default function signInPage() {
         className="bg-white p-8 shadow-lg w-full max-w-sm"
       >
         <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-          Login
+          Sign In
         </h1>
 
         <div className="mb-4">
@@ -117,14 +117,17 @@ export default function signInPage() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 font-semibold hover:bg-blue-700 transition-colors"
+          className="w-full bg-blue-600 text-white py-2 font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
         >
           Login
         </button>
 
         <p className="text-center text-sm text-gray-500 mt-4">
           Don't have an account?{" "}
-          <Link href="/sign-up" className="text-blue-600 hover:underline">
+          <Link
+            href="/sign-up"
+            className="text-blue-600 hover:underline cursor-pointer"
+          >
             Sign Up
           </Link>
         </p>
