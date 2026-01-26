@@ -1,30 +1,33 @@
 "use client";
 
-import { logOutApi } from "@/api/auth";
+import { logOutAction } from "@/lib/actions/auth";
 import { useAuthStore } from "@/stores/users.store";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { User } from "lucide-react";
+import Image from "next/image";
+import { startTransition, useState } from "react";
+import toast from "react-hot-toast";
 
 export default function Nav() {
   const [isOpen, setIsOpen] = useState(false);
-  const router = useRouter();
 
   const user = useAuthStore((state) => state.user);
   const clearUser = useAuthStore((state) => state.clearUser);
 
   const logOut = async () => {
-    try {
-      const res = await logOutApi();
-      if (res.status) {
-        clearUser();
-        setIsOpen(false);
-        router.replace("/sign-in");
+    clearUser();
+    setIsOpen(false);
+    startTransition(async () => {
+      try {
+        await logOutAction();
+      } catch (error: any) {
+        const isRedirectError =
+          error?.message === "NEXT_REDIRECT" ||
+          error?.digest?.includes("NEXT_REDIRECT");
+        if (!isRedirectError) {
+          toast.error("Logout failed");
+        }
       }
-    } catch (error) {
-      console.log(error);
-    }
+    });
   };
 
   return (

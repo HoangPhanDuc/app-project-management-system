@@ -1,8 +1,8 @@
 "use client";
 
-import { getProfileApi } from "@/api/auth";
+import { getProfileAction } from "@/lib/actions/auth";
 import { useAuthStore } from "@/stores/users.store";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export default function AuthProvider({
   children,
@@ -12,38 +12,36 @@ export default function AuthProvider({
   initialUser?: any;
 }) {
   const { setUser, setError, setIsLoading } = useAuthStore();
+  const initialized = useRef(false);
 
   useEffect(() => {
-    let active = true;
+    if (initialized.current) return;
+    initialized.current = true;
 
-    async function initAuth() {
+    async function init() {
       setIsLoading(true);
 
       try {
-        if (initialUser) {
-          if (active) setUser(initialUser);
+        if (initialUser !== undefined) {
+          setUser(initialUser);
+          setError(null);
           return;
         }
 
-        const res = await getProfileApi();
-        if (active) {
-          setUser(res?.result ?? null);
-          setError(null);
-        }
+        const res = await getProfileAction();
+        setUser(res?.result ?? null);
+        setError(null);
       } catch (err: any) {
-        if (active) {
+        if (err?.message !== "NEXT_REDIRECT") {
           setUser(null);
           setError(err?.message ?? "Auth error");
         }
       } finally {
-        if (active) setIsLoading(false);
+        setIsLoading(false);
       }
     }
 
-    initAuth();
-    return () => {
-      active = false;
-    };
+    init();
   }, [initialUser, setUser, setError, setIsLoading]);
 
   return <>{children}</>;

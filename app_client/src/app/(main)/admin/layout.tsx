@@ -1,4 +1,4 @@
-import { getAuthUser, redirectByRole } from "@/lib/auth";
+import { getProfileAction } from "@/lib/actions/auth";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 
@@ -7,12 +7,12 @@ export default async function AdminLayout({
 }: {
   children: ReactNode;
 }) {
-  const user = await getAuthUser();
+  const user = await getProfileAction();
 
   if (!user) redirect("/sign-in");
 
   if (user.role.role_name !== "admin") {
-    redirectByRole(user);
+    redirect(`/${user.role.role_name}`);
   }
 
   return <>{children}</>;

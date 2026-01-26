@@ -28,7 +28,7 @@ const tasksModel = sequelize.define(
     start_date: { type: DataTypes.DATE, allowNull: true },
     assigned_to: {
       type: DataTypes.BIGINT,
-      allowNull: false,
+      allowNull: true,
       references: { model: usersModel, key: "id" },
       onUpdate: "CASCADE",
       onDelete: "RESTRICT",

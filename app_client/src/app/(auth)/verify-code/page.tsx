@@ -1,18 +1,12 @@
 "use client";
 
-import { verifyCodeApi } from "@/api/auth";
+import { verifyCodeAction } from "@/lib/actions/auth";
+import { VerifyCodeFormInputs, verifyCodeSchema } from "@/lib/schema/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import toast from "react-hot-toast";
-
-const verifyCodeSchema = z.object({
-  code: z.string().regex(/^\d{6}$/, "Code must be exactly 6 digits"),
-});
-
-type VerifyCodeFormInputs = z.infer<typeof verifyCodeSchema>;
 
 export default function VerifyCodePage() {
   const router = useRouter();
@@ -38,7 +32,7 @@ export default function VerifyCodePage() {
     (el: HTMLInputElement | null, index: number) => {
       inputsRef.current[index] = el;
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -84,12 +78,12 @@ export default function VerifyCodePage() {
   };
 
   const onSubmit = async (data: VerifyCodeFormInputs) => {
-    const res = await verifyCodeApi(email, data.code);
-    if (res.status === true) {
+    const res = await verifyCodeAction(email, data.code);
+    if (res?.status === true) {
       toast.success("Email verified successfully!");
       router.replace("/sign-in");
     } else {
-      toast.error(res.message || "Verification failed");
+      toast.error(res?.error || "Verification failed");
     }
   };
 
@@ -131,7 +125,7 @@ export default function VerifyCodePage() {
 
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || otp.join("").length !== 6}
           className="w-full bg-blue-600 text-white py-2 rounded disabled:opacity-60 cursor-pointer"
         >
           {isSubmitting ? "Verifying..." : "Verify"}

@@ -1,33 +1,25 @@
 "use client";
 
-import {
-  createProjectApi,
-  deleteAllProjectsApi,
-  getAllProjectsApi,
-} from "@/api/projectApi";
 import ProjectDialog from "@/components/projects/ProjectDialog";
 import ProjectList from "@/components/projects/ProjectList";
 import DeleteDialog from "@/components/utils/DeleteDialog";
-import { useEffect, useState } from "react";
+import Loading from "@/components/utils/Loading";
+import { Project } from "@/interface/projects";
+import {
+  createProjectAction,
+  deleteAllProjectsAction,
+  getAllProjectsAction,
+} from "@/lib/actions/projects";
+import { Suspense, useEffect, useState } from "react";
 import toast from "react-hot-toast";
-
-type Project = {
-  id: number;
-  name: string;
-  description: string;
-  status: "active" | "completed" | "archived";
-};
 
 export default function DashboardAdminPage() {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
   const [openCreate, setOpenCreate] = useState(false);
 
   const fetchProjects = async () => {
-    setLoading(true);
-    const res = await getAllProjectsApi();
-    if (res.status) setProjects(res.result);
-    setLoading(false);
+    const res = await getAllProjectsAction();
+    if (res.status) setProjects(res.data);
   };
 
   const handleCreateProject = async (data: {
@@ -35,19 +27,27 @@ export default function DashboardAdminPage() {
     description: string;
     status: "active" | "completed" | "archived";
   }) => {
-    const res = await createProjectApi(data);
-    if (res.status) {
-      toast.success("Project created successfully!");
-      setOpenCreate(false);
-      fetchProjects();
+    try {
+      const res = await createProjectAction(data);
+      if (res.status) {
+        toast.success("Project created successfully!");
+        setOpenCreate(false);
+        fetchProjects();
+      }
+    } catch (error) {
+      toast.error("Failed to create project");
     }
   };
 
   const handleDeleteAllProjects = async () => {
-    const res = await deleteAllProjectsApi();
-    if (res.status) {
-      toast.success("All projects deleted!");
-      setProjects([]);
+    try {
+      const res = await deleteAllProjectsAction();
+      if (res.status) {
+        toast.success("All projects deleted!");
+        setProjects([]);
+      }
+    } catch (error) {
+      toast.error("Failed to delete all projects");
     }
   };
 
@@ -81,11 +81,9 @@ export default function DashboardAdminPage() {
         />
       </div>
 
-      <ProjectList
-        projects={projects}
-        loading={loading}
-        onFetchData={fetchProjects}
-      />
+      <Suspense fallback={<Loading />}>
+        <ProjectList projects={projects} onFetchData={fetchProjects} />
+      </Suspense>
 
       <ProjectDialog
         mode="create"

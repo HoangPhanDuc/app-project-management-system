@@ -1,22 +1,14 @@
 "use client";
 
-import { signUpApi } from "@/api/auth";
+import { signUpAction } from "@/lib/actions/auth";
+import { SignUpFormInputs, signupSchema } from "@/lib/schema/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 
-const signupSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Email invalid"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["member", "admin", "manager"]),
-});
-
-type SignUpFormInputs = z.infer<typeof signupSchema>;
+const initialState = { error: "" };
 
 export default function SignupPage() {
   const {
@@ -27,23 +19,25 @@ export default function SignupPage() {
     resolver: zodResolver(signupSchema),
   });
 
+  const [state, formAction, isPending] = useActionState(
+    signUpAction,
+    initialState,
+  );
   const [passwordEvent, setPasswordEvent] = useState<boolean>(false);
-  const router = useRouter();
+  const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
 
   const handlepasswordEvent = () => {
     setPasswordEvent((prev) => !prev);
   };
 
   const onSubmit = async (data: SignUpFormInputs) => {
-    const res = await signUpApi(
-      data.name,
-      data.email,
-      data.password,
-      data.role
-    );
-    if (res.status === true) {
-      router.replace(`/verify-code?email=${encodeURIComponent(data.email)}`);
-    }
+    setHasSubmitted(false);
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("email", data.email);
+    formData.append("password", data.password);
+    formData.append("role", data.role);
+    formAction(formData);
   };
 
   return (
@@ -61,7 +55,9 @@ export default function SignupPage() {
           <input
             type="text"
             placeholder="Your Name"
-            {...register("name")}
+            {...register("name", {
+              onChange: () => setHasSubmitted(true),
+            })}
             className={`w-full px-4 py-2 border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               errors.name ? "border-red-500" : "border-gray-300"
             }`}
@@ -76,7 +72,9 @@ export default function SignupPage() {
           <input
             type="email"
             placeholder="your@email.com"
-            {...register("email")}
+            {...register("email", {
+              onChange: () => setHasSubmitted(true),
+            })}
             className={`w-full px-4 py-2 border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               errors.email ? "border-red-500" : "border-gray-300"
             }`}
@@ -94,19 +92,21 @@ export default function SignupPage() {
             <input
               type={passwordEvent ? "text" : "password"}
               placeholder="••••••"
-              {...register("password")}
+              {...register("password", {
+                onChange: () => setHasSubmitted(true),
+              })}
               className={`w-full px-4 py-2 border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.password ? "border-red-500" : "border-gray-300"
               }`}
             />
             {passwordEvent ? (
               <Eye
-                className="absolute top-1/4 right-0 mr-2"
+                className="absolute top-1/4 right-0 mr-2 cursor-pointer"
                 onClick={handlepasswordEvent}
               />
             ) : (
               <EyeOff
-                className="absolute top-1/4 right-0 mr-2"
+                className="absolute top-1/4 right-0 mr-2 cursor-pointer"
                 onClick={handlepasswordEvent}
               />
             )}
@@ -122,7 +122,9 @@ export default function SignupPage() {
         <div className="mb-6">
           <label className="block text-gray-700 font-medium mb-1">Role</label>
           <select
-            {...register("role")}
+            {...register("role", {
+              onChange: () => setHasSubmitted(true),
+            })}
             className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="member">Member</option>
@@ -131,11 +133,16 @@ export default function SignupPage() {
           </select>
         </div>
 
+        {hasSubmitted && state?.error && (
+          <p className="text-red-600 text-xs mb-3 text-center">{state.error}</p>
+        )}
+
         <button
           type="submit"
+          disabled={isPending}
           className="w-full bg-blue-600 text-white py-2 font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
         >
-          Sign Up
+          {isPending ? "Signing up..." : "Sign Up"}
         </button>
 
         <p className="text-center text-sm text-gray-500 mt-4">

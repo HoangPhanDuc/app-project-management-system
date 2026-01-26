@@ -1,5 +1,5 @@
-import rolesModel from "../model/rolesModel.js";
-import usersModel from "../model/usersModel.js";
+import rolesModel from "../entities/rolesModel.js";
+import usersModel from "../entities/usersModel.js";
 import { hashToken } from "../utils/handletoken.js";
 
 export const getAllUsersService = async () => {

@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getMeController,
+  refreshTokenController,
   resendOtpController,
   userLoginController,
   userLogoutController,
@@ -25,8 +26,9 @@ auth.post(
   "/verify-email-user",
   validateVerifyEmail,
   handleValidation,
-  verifyEmailController
+  verifyEmailController,
 );
 auth.get("/me", authenticate, getMeController);
+auth.post("/refresh-token", refreshTokenController);
 
 export default auth;

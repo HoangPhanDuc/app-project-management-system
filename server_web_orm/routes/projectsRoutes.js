@@ -20,7 +20,7 @@ projectsRoutes.post(
 projectsRoutes.get(
   "/get-all-projects",
   authenticate,
-  authorize("admin"),
+  authorize("admin", "manager"),
   getAllProjectsController
 );
 projectsRoutes.get(

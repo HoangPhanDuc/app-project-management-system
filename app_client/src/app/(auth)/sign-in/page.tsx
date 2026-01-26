@@ -1,23 +1,23 @@
 "use client";
 
-import { loginApi } from "@/api/auth";
-import { useAuthStore } from "@/stores/users.store";
+import { loginAction } from "@/lib/actions/auth";
+import { LoginFormInputs, loginSchema } from "@/lib/schema/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 
-const loginSchema = z.object({
-  email: z.string().email("Email invalid"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
+const initialState = { error: "" };
 
-type LoginFormInputs = z.infer<typeof loginSchema>;
+export default function SignInPage() {
+  const [state, formAction, pending] = useActionState(
+    loginAction,
+    initialState,
+  );
+  const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
 
-export default function signInPage() {
   const {
     register,
     handleSubmit,
@@ -29,33 +29,32 @@ export default function signInPage() {
   const [passwordEvent, setPasswordEvent] = useState<boolean>(false);
   const router = useRouter();
 
-  const handlepasswordEvent = () => {
-    setPasswordEvent((prev) => !prev);
-  };
+  useEffect(() => {
+    if (state?.success) {
+      switch (state.role) {
+        case "admin":
+          router.replace("/admin");
+          break;
+        case "manager":
+          router.replace("/manager");
+          break;
+        case "member":
+          router.replace("/member");
+          break;
+        default:
+          router.replace("/");
+      }
+    }
+  }, [state]);
 
   const onSubmit = async (data: LoginFormInputs) => {
-    try {
-      const res = await loginApi(data.email, data.password);
-      if (res.status === true) {
-        useAuthStore.getState().setUser(res.result);
-        const role = res.result.role.role_name;
-        switch (role) {
-          case "admin":
-            router.replace("/admin");
-            break;
-          case "manager":
-            router.replace("/manager");
-            break;
-          case "member":
-            router.replace("/member");
-            break;
-          default:
-            router.replace("/not-found");
-        }
-      }
-    } catch (error) {
-      console.log(error);
-    }
+    setHasSubmitted(true);
+    const formData = new FormData();
+    formData.append("email", data.email);
+    formData.append("password", data.password);
+    startTransition(() => {
+      formAction(formData);
+    });
   };
 
   return (
@@ -73,7 +72,9 @@ export default function signInPage() {
           <input
             type="email"
             placeholder="your@email.com"
-            {...register("email")}
+            {...register("email", {
+              onChange: () => setHasSubmitted(true),
+            })}
             className={`w-full px-4 py-2 border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               errors.email ? "border-red-500" : "border-gray-300"
             }`}
@@ -91,7 +92,9 @@ export default function signInPage() {
             <input
               type={passwordEvent ? "text" : "password"}
               placeholder="••••••"
-              {...register("password")}
+              {...register("password", {
+                onChange: () => setHasSubmitted(true),
+              })}
               className={`w-full px-4 py-2 border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.password ? "border-red-500" : "border-gray-300"
               }`}
@@ -99,12 +102,12 @@ export default function signInPage() {
             {passwordEvent ? (
               <Eye
                 className="absolute top-1/4 right-0 mr-2"
-                onClick={handlepasswordEvent}
+                onClick={() => setPasswordEvent(false)}
               />
             ) : (
               <EyeOff
                 className="absolute top-1/4 right-0 mr-2"
-                onClick={handlepasswordEvent}
+                onClick={() => setPasswordEvent(true)}
               />
             )}
           </div>
@@ -115,11 +118,16 @@ export default function signInPage() {
           )}
         </div>
 
+        {hasSubmitted && state?.error && (
+          <p className="text-red-600 text-xs mb-3 text-center">{state.error}</p>
+        )}
+
         <button
           type="submit"
+          disabled={pending}
           className="w-full bg-blue-600 text-white py-2 font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
         >
-          Login
+          {pending ? "Logging in..." : "Login"}
         </button>
 
         <p className="text-center text-sm text-gray-500 mt-4">

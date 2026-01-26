@@ -1,18 +1,10 @@
 "use client";
 
+import { FormDataProject, projectSchema } from "@/lib/schema/projects";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-
-const projectSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100),
-  description: z.string().min(1, "Description is required").max(500),
-  status: z.enum(["active", "completed", "archived"]),
-});
-
-export type FormDataProject = z.infer<typeof projectSchema>;
 
 type Mode = "create" | "update";
 
@@ -124,8 +116,8 @@ export default function ProjectDialog({
                   ? "Updating..."
                   : "Creating..."
                 : mode === "update"
-                ? "Update"
-                : "Create"}
+                  ? "Update"
+                  : "Create"}
             </button>
           </div>
         </form>

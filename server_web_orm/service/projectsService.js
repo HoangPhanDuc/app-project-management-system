@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import projectsModel from "../model/projectsModel.js";
+import projectsModel from "../entities/projectsModel.js";
 
 export const getAllProjectsService = async ({ cursor, limit }) => {
   try {
@@ -54,8 +54,8 @@ export const deleteProjectsService = async (id) => {
     if (!project) {
       return null;
     }
-    await projectsModel.destroy({ where: { id: id } });
-    return project;
+    const result = await projectsModel.destroy({ where: { id: id } });
+    return result;
   } catch (error) {
     throw error;
   }
@@ -63,7 +63,10 @@ export const deleteProjectsService = async (id) => {
 
 export const deleteAllProjectsService = async () => {
   try {
-    const deletedCount = await projectsModel.destroy({ where: {} });
+    const deletedCount = await projectsModel.destroy({
+      where: {},
+      truncate: true,
+    });
     return deletedCount;
   } catch (error) {
     throw error;

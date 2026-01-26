@@ -1,6 +1,7 @@
-import { setLoginCookies } from "../helper/cookie.js";
+import { setAuthCookie, setLoginCookies } from "../helper/cookie.js";
 import {
   getUserByIdService,
+  refreshTokenService,
   registerUserService,
   saveRefreshTokenService,
   userLoginService,
@@ -12,6 +13,7 @@ import {
   createAccessToken,
   createRefreshToken,
   hashingPassword,
+  verifyRefreshToken,
 } from "../utils/handletoken.js";
 import { sendVerificationEmail } from "../utils/mailer.js";
 
@@ -42,7 +44,7 @@ export const userLoginController = async (req, res) => {
     });
 
     await saveRefreshTokenService(refreshToken, user.id);
-    const newUser = { ...user };
+    const newUser = { ...user, accessToken, refreshToken };
     delete newUser.password;
 
     setLoginCookies(res, accessToken, refreshToken);
@@ -55,6 +57,38 @@ export const userLoginController = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Error occurred", error });
+  }
+};
+
+export const refreshTokenController = async (req, res) => {
+  const refreshToken = req.cookies?.refreshToken;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token missing" });
+  }
+
+  try {
+    const decodedRefresh = verifyRefreshToken(refreshToken);
+    const isValid = await refreshTokenService(decodedRefresh.id, refreshToken);
+
+    if (!isValid) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    const newAccessToken = createAccessToken({
+      id: decodedRefresh.id,
+      role: decodedRefresh.role,
+    });
+
+    setAuthCookie(res, newAccessToken);
+
+    return res.status(200).json({
+      accessToken: newAccessToken,
+      expiresIn: 900,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(403).json({ message: "Refresh session expired" });
   }
 };
 
@@ -296,7 +330,7 @@ export const verifyEmailController = async (req, res) => {
       pendingUser.name,
       pendingUser.email,
       pendingUser.hashedPassword,
-      pendingUser.roleId
+      pendingUser.roleId,
     );
 
     pendingUsers.delete(email);
